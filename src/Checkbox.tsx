@@ -1,5 +1,3 @@
-import "./assets/checkbox.css";
-
 export default function Checkbox() {
     return (
         <div className="checkbox-wrapper-19">

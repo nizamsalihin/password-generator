@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 
 interface SliderProps {
     min?: number;
@@ -11,20 +11,7 @@ export default function Slider({ onSlide, min = 0, max = 100 }: SliderProps) {
     const isDragging = useRef<boolean>(false);
     const sliderRef = useRef<HTMLDivElement | null>(null);
 
-    const onMouseDownHandler = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        isDragging.current = true;
-        updatePercentage(event.clientX);
-    };
-
-    const onMouseUpHandler = () => {
-        isDragging.current = false;
-    };
-
-    const onMouseMoveHandler = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
-        if (isDragging.current) updatePercentage(event.clientX);
-    };
-
-    const updatePercentage = (clientX: number) => {
+    const updatePercentage = useCallback((clientX: number) => {
         const slider = sliderRef.current as HTMLDivElement;
         const rect = slider.getBoundingClientRect();
 
@@ -35,11 +22,30 @@ export default function Slider({ onSlide, min = 0, max = 100 }: SliderProps) {
 
         const value = Math.round(min + (max - min) * (clearedPercentage / 100));
         onSlide(value);
+    }, [min, max, onSlide]);
+
+    const onMouseDownHandler = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        isDragging.current = true;
+        updatePercentage(event.clientX);
     };
 
+    const onMouseUpHandler = () => {
+        isDragging.current = false;
+    };
+
+    const onDivMouseMove = (event: React.MouseEvent<HTMLDivElement, MouseEvent>) => {
+        handleMove(event.clientX);
+    };
+
+    const handleMove = (x: number) => {
+        if (isDragging.current) updatePercentage(x);
+      };
+
+    const onMouseMoveHandler = useCallback((event: MouseEvent) => {
+        handleMove(event.clientX);
+    }, [isDragging, updatePercentage]);
+
     useEffect(() => {
-
-
         // setup mouse event to body
         document.body.addEventListener("mousemove", onMouseMoveHandler);
         document.body.addEventListener("mouseup", onMouseUpHandler);
@@ -48,7 +54,7 @@ export default function Slider({ onSlide, min = 0, max = 100 }: SliderProps) {
             document.body.removeEventListener("mousemove", onMouseMoveHandler);
             document.body.addEventListener("mouseup", onMouseUpHandler);
         };
-    }, []);
+    }, [onMouseMoveHandler]);
 
     return (
         <div
@@ -56,7 +62,7 @@ export default function Slider({ onSlide, min = 0, max = 100 }: SliderProps) {
             className="relative bg-black rounded-xl cursor-pointer"
             onMouseDown={onMouseDownHandler}
             onMouseUp={onMouseUpHandler}
-            onMouseMove={onMouseMoveHandler}
+            onMouseMove={onDivMouseMove}
         >
             <div className="bg-primary h-1 rounded" style={{ width: `${percentage}%` }}></div>
             <div

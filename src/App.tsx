@@ -7,7 +7,7 @@ import rightArrow from "$icons/right-arrow.webp";
 
 import Icon from "./Icon";
 import Slider from "./Slider";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import TaskWrapper from "./TaskWrapper";
 import Task from "./Task";
 import Button from "./Button";
@@ -33,7 +33,7 @@ function App() {
         length: MINIMAL_CHARACTER_LENGTH,
     });
 
-    const generatePassword = () => {
+    const generatePassword = useCallback(() => {
         let password = "";
 
         let characters = "";
@@ -58,7 +58,7 @@ function App() {
         }
 
         setPassword(password);
-    };
+    }, [passwordConfig]);
 
     const getLevel = () => {
         // count how many true characters
@@ -74,14 +74,14 @@ function App() {
     const getStrengthLabel = () => {
         // count how many true characters
         const labels = ["", "Feeble", "Wimpy", "Decent", "Mighty", "Unbreakable!!!"];
-        let count = getLevel();
+        const count = getLevel();
 
         return labels[count];
     };
 
     useEffect(() => {
         generatePassword();
-    }, []);
+    }, [generatePassword]);
 
     return (
         <div className="h-screen w-full bg-black flex items-center justify-center">
